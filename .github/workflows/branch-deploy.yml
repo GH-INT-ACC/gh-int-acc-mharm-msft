@@ -174,7 +174,7 @@ jobs:
 
       - name: Add Success Reaction
         id: add-success-reaction
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.reactions.createForIssueComment({
@@ -186,7 +186,7 @@ jobs:
 
       - name: Add Failure Reaction
         id: add-failure-reaction
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.reactions.createForIssueComment({
@@ -199,7 +199,7 @@ jobs:
       - if: ${{ env.DEPLOYMENT_STATUS == 'success' }}
         name: Add Success Comment
         id: success-comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.createComment({
@@ -216,7 +216,7 @@ jobs:
       - if: ${{ env.DEPLOYMENT_STATUS == 'failure' }}
         name: Add Failure Comment
         id: failure-comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.createComment({
