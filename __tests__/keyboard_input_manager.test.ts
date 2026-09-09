@@ -77,4 +77,11 @@ describe('KeyboardInputManager', () => {
       expect(preventDefault).toHaveBeenCalledTimes(1)
     })
   })
+
+  describe('constructor', () => {
+    it('Sets events and listens', async () => {
+      // Lab 3: Git Bisect
+      expect(true).toBe(false)
+    })
+  })
 })
