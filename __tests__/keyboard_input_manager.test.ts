@@ -84,4 +84,21 @@ describe('KeyboardInputManager', () => {
       expect(true).toBe(false)
     })
   })
+
+  describe('keepPlaying()', () => {
+    it('Emits a keepPlaying event', async () => {
+      const preventDefault = jest.fn()
+      const event = {
+        preventDefault
+      }
+      const emit = jest
+        .spyOn(KeyboardInputManager, 'emit')
+        .mockImplementation(() => {})
+
+      KeyboardInputManager.keepPlaying(event as unknown as Event)
+
+      expect(emit).toHaveBeenCalledTimes(1)
+      expect(preventDefault).toHaveBeenCalledTimes(1)
+    })
+  })
 })
