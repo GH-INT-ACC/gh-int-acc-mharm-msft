@@ -27,7 +27,7 @@ cause many conflicts and other problems.
    ```plain
    # Game Project Code Owners
 
-   * @<organization>/<class-team>
+   * @GH-INT-ACC/gh-int-acc
    ```
 
 1. Add the `CODEOWNERS` file to the repository
