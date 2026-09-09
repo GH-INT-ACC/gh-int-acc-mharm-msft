@@ -26,4 +26,22 @@ describe('KeyboardInputManager', () => {
       expect(KeyboardInputManager.events['test'].length).toBe(1)
     })
   })
+
+  describe('emit()', () => {
+    let callback1: any
+    let callback2: any
+
+    beforeEach(() => {
+      callback1 = jest.fn()
+      callback2 = jest.fn()
+    })
+
+    it('Emits an event to all listeners', async () => {
+      KeyboardInputManager.events['test'] = [callback1, callback2]
+      KeyboardInputManager.emit('test')
+
+      expect(callback1).toHaveBeenCalledTimes(1)
+      expect(callback2).toHaveBeenCalledTimes(1)
+    })
+  })
 })
