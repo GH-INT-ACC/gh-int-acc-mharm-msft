@@ -1,0 +1,17 @@
+# Node.js Dependencies, Caching, Etc.
+.eslintcache/
+.npm/
+node_modules/
+
+# Unit Test Coverage Outputs
+coverage
+reports
+
+# OS Metadata
+.DS_Store
+
+# Linter Reports
+megalinter-reports/
+
+# Build Artifacts
+dist/

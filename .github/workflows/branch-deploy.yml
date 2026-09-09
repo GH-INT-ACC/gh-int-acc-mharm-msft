@@ -1,0 +1,236 @@
+# When a comment is added to a PR or issue, this workflow will check if the
+# comment is a command to deploy a branch. If it is, it will create a new
+# GitHub Pages deployment.
+name: Branch Deploy
+
+on:
+  issue_comment:
+    types:
+      - created
+
+permissions:
+  actions: read
+  checks: write
+  contents: write
+  deployments: write
+  id-token: write
+  pages: write
+  pull-requests: write
+
+jobs:
+  start:
+    name: Start Branch Deployment
+    runs-on: ubuntu-latest
+
+    # Only run on pull request comments.
+    if: ${{ github.event.issue.pull_request }}
+
+    # Set the outputs to be used by the rest of the workflow
+    # prettier-ignore
+    outputs:
+      continue: ${{ steps.branch-deploy.outputs.continue }}
+      noop: ${{ steps.branch-deploy.outputs.noop }}
+      deployment_id: ${{ steps.branch-deploy.outputs.deployment_id }}
+      environment: ${{ steps.branch-deploy.outputs.environment }}
+      ref: ${{ steps.branch-deploy.outputs.ref }}
+      comment_id: ${{ steps.branch-deploy.outputs.comment_id }}
+      initial_reaction_id: ${{ steps.branch-deploy.outputs.initial_reaction_id }}
+      actor_handle: ${{ steps.branch-deploy.outputs.actor_handle }}
+
+    steps:
+      # Branch deployment logic will be used to gate all future steps below and
+      # conditionally trigger steps/deployments.
+      - name: Start Branch Deployment
+        id: branch-deploy
+        uses: github/branch-deploy@v10
+        with:
+          environment: github-pages
+          environment_targets: github-pages
+          skip_ci: github-pages
+          skip_reviews: github-pages
+          skip_completing: true
+
+  deploy:
+    name: Deploy to GitHub pages
+    runs-on: ubuntu-latest
+
+    # Only run after `start` has completed successfully.
+    needs:
+      - start
+
+    # Only start after the branch deployment is initialized.
+    if: ${{ needs.start.outputs.continue == 'true' }}
+
+    # Use the environment selected in the start job.
+    environment: ${{ needs.start.outputs.environment }}
+
+    # Set the deployment outcome based on if pages deployment succeeded.
+    # prettier-ignore
+    outputs:
+      outcome: ${{ steps.deploy.outcome == 'success' && 'success' || 'failure' }}
+      page_url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      # Checkout repository based on the ref provided by the branch-deploy step.
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.start.outputs.ref }}
+
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install Dependencies
+        id: install
+        run: npm install
+
+      - name: Package
+        id: package
+        run: npm run package
+
+      - name: Setup GitHub Pages
+        id: configure-pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Artifact
+        id: upload-artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
+
+  stop:
+    name: Stop Branch Deployment
+    runs-on: ubuntu-latest
+
+    # Only run after `start` and `deploy` have completed successfully.
+    needs:
+      - start
+      - deploy
+
+    # Always run if the branch deployment was started
+    if: ${{ always() && needs.start.outputs.continue == 'true' }}
+
+    # Switch back to the deployments environment to update deployment statuses
+    environment: deployments
+
+    env:
+      ACTOR: ${{ github.actor }}
+      COMMENT_ID: ${{ needs.start.outputs.comment_id }}
+      DEPLOYMENT_ID: ${{ needs.start.outputs.deployment_id }}
+      DEPLOYMENT_STATUS: ${{ needs.deploy.outputs.outcome || 'failure' }}
+      ENVIRONMENT: ${{ needs.start.outputs.environment }}
+      GITHUB_TOKEN: ${{ github.token }}
+      PAGE_URL: ${{ needs.deploy.outputs.page_url }}
+      REACTION_ID: ${{ needs.start.outputs.initial_reaction_id }}
+      REF: ${{ needs.start.outputs.ref }}
+      REPOSITORY: ${{ github.repository }}
+
+    steps:
+      - name: Set Deployment Status
+        id: set-status
+        shell: bash
+        run: |
+          gh api --method POST \
+            "repos/${{ env.REPOSITORY }}/deployments/${{ env.DEPLOYMENT_ID }}/statuses" \
+            -f environment="${{ env.ENVIRONMENT }}" \
+            -f state="${{ env.DEPLOYMENT_STATUS }}"
+
+      - name: Remove Non-Sticky Lock
+        id: remove-lock
+        shell: bash
+        run: |
+          # Fetch the lock.json file from the lock branch.
+          gh api --method GET \
+            "repos/${{ env.REPOSITORY }}/contents/lock.json?ref=${{ env.ENVIRONMENT }}-branch-deploy-lock" \
+            --jq '.content' \
+            | base64 --decode > lock.json
+
+          # Check if this is a sticky lock.
+          if [ "$(jq -r '.sticky' lock.json)" = "true" ]; then
+            echo "The lock is sticky, skipping the delete step!"
+          else
+            echo "Deleting the non-sticky lock!"
+            gh api --method DELETE \
+              "repos/${{ env.REPOSITORY }}/git/refs/heads/${{ env.ENVIRONMENT }}-branch-deploy-lock"
+          fi
+
+          rm lock.json
+
+      - name: Remove Trigger Reaction
+        id: remove-reaction
+        shell: bash
+        run: |
+          gh api --method DELETE \
+            "repos/${{ env.REPOSITORY }}/issues/comments/${{ env.COMMENT_ID }}/reactions/${{ env.REACTION_ID }}"
+
+      - name: Add Success Reaction
+        id: add-success-reaction
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: '${{ env.COMMENT_ID }}',
+              content: 'rocket'
+            })
+
+      - name: Add Failure Reaction
+        id: add-failure-reaction
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: '${{ env.COMMENT_ID }}',
+              content: '-1'
+            })
+
+      - if: ${{ env.DEPLOYMENT_STATUS == 'success' }}
+        name: Add Success Comment
+        id: success-comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `### Deployment Results :white_check_mark:
+
+            **${{ env.ACTOR }}** successfully deployed branch \`${{ env.REF }}\` to **${{ env.ENVIRONMENT }}**
+
+            Page URL: [\`${{ env.PAGE_URL }}\`](${{ env.PAGE_URL }})`
+            })
+
+      - if: ${{ env.DEPLOYMENT_STATUS == 'failure' }}
+        name: Add Failure Comment
+        id: failure-comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `### Deployment Results :x:
+
+            **${{ env.ACTOR }}** had a failure when deploying \`${{ env.REF }}\` to **${{ env.ENVIRONMENT }}**`
+            })
+
+      - if: ${{ env.DEPLOYMENT_STATUS == 'failure' }}
+        name: Failure
+        shell: bash
+        run: |
+          echo "There was a failure...failing the workflow!"
+          exit 1

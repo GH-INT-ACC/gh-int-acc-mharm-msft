@@ -1,0 +1,69 @@
+# This is a simple workflow to manually deploy your project to GitHub Pages.
+# This should be used if you are running into issues with the current deployment
+# and want to redeploy the project.
+name: Deploy to GitHub Pages
+
+# This workflow is invoked automatically on push to `main`, and can be invoked
+# manually using the "Run workflow" button in the Actions tab of the repository.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Base permissions required to deploy to GitHub Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# This section prevents multiple concurrent deployments from happening at the
+# same time. Any in-progress deployments will not be cancelled.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+
+    # Configure the environment for the deployment. This will set the URL for
+    # the deployment to the URL of the GitHub Pages site.
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        id: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install Dependencies
+        id: install
+        run: npm install
+
+      - name: Package
+        id: package
+        run: npm run package
+
+      - name: Setup GitHub Pages
+        id: configure-pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Artifact
+        id: upload-artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
