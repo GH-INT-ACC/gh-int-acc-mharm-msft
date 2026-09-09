@@ -17,5 +17,13 @@ describe('KeyboardInputManager', () => {
 
       expect(KeyboardInputManager.events['test'].length).toBe(1)
     })
+
+    it('Creates an listener array if it does not exist', async () => {
+      KeyboardInputManager.events = {}
+
+      KeyboardInputManager.on('test', () => {})
+
+      expect(KeyboardInputManager.events['test'].length).toBe(1)
+    })
   })
 })
