@@ -51,5 +51,13 @@ describe('KeyboardInputManager', () => {
       expect(callback1).toHaveBeenCalledWith('data')
       expect(callback2).toHaveBeenCalledWith('data')
     })
+
+    it('Does nothing if the event does not exist', async () => {
+      KeyboardInputManager.events = {}
+      KeyboardInputManager.emit('test')
+
+      expect(callback1).not.toHaveBeenCalled()
+      expect(callback2).not.toHaveBeenCalled()
+    })
   })
 })
