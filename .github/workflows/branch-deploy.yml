@@ -42,7 +42,7 @@ jobs:
       # conditionally trigger steps/deployments.
       - name: Start Branch Deployment
         id: branch-deploy
-        uses: github/branch-deploy@v10
+        uses: github/branch-deploy@v12
         with:
           environment: github-pages
           environment_targets: github-pages
