@@ -60,4 +60,21 @@ describe('KeyboardInputManager', () => {
       expect(callback2).not.toHaveBeenCalled()
     })
   })
+
+  describe('restart()', () => {
+    it('Emits a restart event', async () => {
+      const preventDefault = jest.fn()
+      const event = {
+        preventDefault
+      }
+      const emit = jest
+        .spyOn(KeyboardInputManager, 'emit')
+        .mockImplementation(() => {})
+
+      KeyboardInputManager.restart(event as unknown as Event)
+
+      expect(emit).toHaveBeenCalledTimes(1)
+      expect(preventDefault).toHaveBeenCalledTimes(1)
+    })
+  })
 })
