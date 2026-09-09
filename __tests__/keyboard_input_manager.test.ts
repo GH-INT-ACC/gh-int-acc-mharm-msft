@@ -43,5 +43,13 @@ describe('KeyboardInputManager', () => {
       expect(callback1).toHaveBeenCalledTimes(1)
       expect(callback2).toHaveBeenCalledTimes(1)
     })
+
+    it('Passes data to listeners', async () => {
+      KeyboardInputManager.events['test'] = [callback1, callback2]
+      KeyboardInputManager.emit('test', 'data')
+
+      expect(callback1).toHaveBeenCalledWith('data')
+      expect(callback2).toHaveBeenCalledWith('data')
+    })
   })
 })
