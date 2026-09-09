@@ -150,7 +150,6 @@ export class HTMLActuator {
     HTMLActuator.clearContainer(HTMLActuator.scoreContainer)
 
     // Get the difference between the current score and the new score
-    // @ts-expect-error This will be used in the future
     const difference = score - HTMLActuator.score
 
     // Set the new score
@@ -160,6 +159,13 @@ export class HTMLActuator {
     HTMLActuator.scoreContainer.textContent = HTMLActuator.score.toString()
 
     // Lab 4: Animate the score update
+    if (difference > 0) {
+      const addition = document.createElement('div')
+      addition.classList.add('score-addition')
+      addition.textContent = '+' + difference
+
+      HTMLActuator.scoreContainer.appendChild(addition)
+    }
   }
 
   /**
