@@ -101,4 +101,17 @@ describe('KeyboardInputManager', () => {
       expect(preventDefault).toHaveBeenCalledTimes(1)
     })
   })
+
+  describe('bindButtonPress()', () => {
+    it('Binds a button press', async () => {
+      const addEventListener = jest.fn()
+      document.querySelector = jest.fn().mockReturnValue({
+        addEventListener
+      })
+
+      KeyboardInputManager.bindButtonPress('.test', () => {})
+
+      expect(addEventListener).toHaveBeenCalledTimes(1)
+    })
+  })
 })
