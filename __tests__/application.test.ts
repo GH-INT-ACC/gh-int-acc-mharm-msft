@@ -10,6 +10,7 @@ jest.unstable_mockModule('../src/game_manager.js', () => {
   class GameManager {
     constructor(gridSize: number) {
       gameManager(gridSize)
+      return gameManager as any
     }
   }
 

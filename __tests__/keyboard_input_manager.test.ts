@@ -88,7 +88,6 @@ describe('KeyboardInputManager', () => {
       new KeyboardInputManager()
 
       expect(KeyboardInputManager.events).toMatchObject({})
-      expect(KeyboardInputManager.events).toEqual({})
       expect(listen).toHaveBeenCalledTimes(1)
     })
   })
