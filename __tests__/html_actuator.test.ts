@@ -95,6 +95,17 @@ describe('HTMLActuator', () => {
         HTMLActuator.scoreContainer.querySelector('.score-addition')
       ).not.toBeNull()
     })
+
+    it('Does not append score addition when score does not increase', () => {
+      HTMLActuator.score = 10
+      HTMLActuator.scoreContainer = document.createElement('div')
+
+      HTMLActuator.updateScore(10)
+
+      expect(
+        HTMLActuator.scoreContainer.querySelector('.score-addition')
+      ).toBeNull()
+    })
   })
 
   describe('message()', () => {
