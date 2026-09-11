@@ -83,6 +83,32 @@ describe('HTMLActuator', () => {
     })
   })
 
+  describe('updateScore()', () => {
+    it('Appends score addition when score increases', () => {
+      HTMLActuator.score = 5
+      HTMLActuator.scoreContainer = document.createElement('div')
+
+      HTMLActuator.updateScore(10)
+
+      const scoreAddition =
+        HTMLActuator.scoreContainer.querySelector('.score-addition')
+
+      expect(scoreAddition).not.toBeNull()
+      expect(scoreAddition?.textContent).toBe('+5')
+    })
+
+    it('Does not append score addition when score does not increase', () => {
+      HTMLActuator.score = 10
+      HTMLActuator.scoreContainer = document.createElement('div')
+
+      HTMLActuator.updateScore(10)
+
+      expect(
+        HTMLActuator.scoreContainer.querySelector('.score-addition')
+      ).toBeNull()
+    })
+  })
+
   describe('message()', () => {
     it('Sets the message (won)', () => {
       const p = document.createElement('p')

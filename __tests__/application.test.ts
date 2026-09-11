@@ -8,8 +8,9 @@ jest.unstable_mockModule('../src/animframe_polyfill.js', () => ({
 }))
 jest.unstable_mockModule('../src/game_manager.js', () => {
   class GameManager {
-    constructor() {
-      return gameManager
+    constructor(gridSize: number) {
+      gameManager(gridSize)
+      return gameManager as any
     }
   }
 
@@ -24,6 +25,12 @@ describe('Application', () => {
   })
 
   it('Starts the application', async () => {
+    window.requestAnimationFrame = jest.fn((callback) => {
+      callback(0)
+      return 0
+    })
+
     expect(await import('../src/application.js')).toMatchObject({})
+    expect(gameManager).toHaveBeenCalledWith(4)
   })
 })

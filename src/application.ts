@@ -5,5 +5,5 @@ window.requestAnimationFrame(function () {
   animFramePolyfill()
 
   // Lab 7: Grid Size
-  new GameManager(3)
+  new GameManager(4)
 })
