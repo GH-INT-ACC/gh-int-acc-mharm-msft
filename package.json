@@ -1,7 +1,7 @@
 {
   "name": "@githubschool/gh-github-intermediate-template",
   "description": "GitHub Intermediate Training - Template",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "scripts": {
     "bundle": "npm run format:write && npm run package",
     "ci-test": "node --experimental-vm-modules --no-warnings node_modules/jest/bin/jest.js",
