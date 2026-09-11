@@ -90,10 +90,11 @@ describe('HTMLActuator', () => {
 
       HTMLActuator.updateScore(10)
 
-      expect(HTMLActuator.scoreContainer.textContent).toContain('+5')
-      expect(
+      const scoreAddition =
         HTMLActuator.scoreContainer.querySelector('.score-addition')
-      ).not.toBeNull()
+
+      expect(scoreAddition).not.toBeNull()
+      expect(scoreAddition?.textContent).toBe('+5')
     })
 
     it('Does not append score addition when score does not increase', () => {
