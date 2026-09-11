@@ -13,7 +13,8 @@ export class LocalStorageManager {
 
   /**
    * Gets the best score.
-   *
+   */
+  LocalStorageManager.storage.setItem('bestScore', score.toString())
    * @returns Best Score
    */
   static getBestScore(): number {
