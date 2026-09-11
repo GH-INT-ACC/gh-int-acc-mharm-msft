@@ -26,7 +26,7 @@ describe('Application', () => {
   it('Starts the application', async () => {
     window.requestAnimationFrame = jest.fn((callback) => {
       callback(0)
-      return 0 as any
+      return 0
     })
 
     expect(await import('../src/application.js')).toMatchObject({})

@@ -162,7 +162,7 @@ export class HTMLActuator {
     if (difference > 0) {
       const addition = document.createElement('div')
       addition.classList.add('score-addition')
-      addition.textContent = '+' + difference
+      addition.textContent = `+${difference}`
 
       HTMLActuator.scoreContainer.appendChild(addition)
     }
