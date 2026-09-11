@@ -26,7 +26,7 @@ export class LocalStorageManager {
    * @param score Best Score
    */
   static setBestScore(score: number): void {
-    // Lab 11: Update Best Score
+    LocalStorageManager.storage.setItem('bestScore', score.toString())
   }
 
   /**
